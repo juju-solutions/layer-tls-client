@@ -41,22 +41,6 @@ def store_ca(tls):
             fp.write(certificate_authority)
 
 
-@when('certificates.available', 'tls-client.certificates.directory')
-def send_data(tls):
-    '''Send the data that is required to create a server certificate for
-    this server.'''
-    # Use the public ip of this unit as the Common Name for the certificate.
-    common_name = hookenv.unit_public_ip()
-    # Get a list of Subject Alt Names for the certificate.
-    sans = []
-    sans.append(hookenv.unit_public_ip())
-    sans.append(hookenv.unit_private_ip())
-    sans.append(socket.gethostname())
-    # Create a path safe name by removing path characters from the unit name.
-    certificate_name = hookenv.local_unit().replace('/', '_')
-    tls.request_server_cert(common_name, sans, certificate_name)
-
-
 @when('certificates.server.cert.available')
 @when('tls-client.certificates.directory')
 def store_server(tls):
@@ -69,7 +53,7 @@ def store_server(tls):
         directory = layer_options.get('certificates-directory')
         if not os.path.isdir(directory):
             os.makedirs(directory)
-        cert_file = os.path.join(directory, 'server.cert')
+        cert_file = os.path.join(directory, 'server.crt')
         hookenv.log('Writing server certificate to {0}'.format(cert_file))
         with open(cert_file, 'w') as stream:
             stream.write(server_cert)
@@ -91,7 +75,7 @@ def store_client(tls):
         directory = layer_options.get('certificates-directory')
         if not os.path.isdir(directory):
             os.makedirs(directory)
-        cert_file = os.path.join(directory, 'client.cert')
+        cert_file = os.path.join(directory, 'client.crt')
         hookenv.log('Writing client certificate to {0}'.format(cert_file))
         with open(cert_file, 'w') as stream:
             stream.write(client_cert)

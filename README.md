@@ -9,6 +9,28 @@ This is a middle layer and can not be used on its own.
 
 Implementing layers must set certificates-directory
 
+## To request a certificate
+
+If the layer needs a server certificate it must request one with the relation
+code.
+
+```python 
+@when('certificates.available')
+def send_data(tls):
+    '''Send the data that is required to create a server certificate for
+    this server.'''
+    # Use the public ip of this unit as the Common Name for the certificate.
+    common_name = hookenv.unit_public_ip()
+    # Get a list of Subject Alt Names for the certificate.
+    sans = []
+    sans.append(hookenv.unit_public_ip())
+    sans.append(hookenv.unit_private_ip())
+    sans.append(socket.gethostname())
+    # Create a path safe name by removing path characters from the unit name.
+    certificate_name = hookenv.local_unit().replace('/', '_')
+    tls.request_server_cert(common_name, sans, certificate_name)
+```
+
 ## Known Limitations and Issues
 
 This is a middle layer that needs to be built into another charm. The
