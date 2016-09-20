@@ -1,0 +1,7 @@
+includes: ['layer:basic', 'interface:tls-certificates'] 
+repo: https://github.com/juju-solutions/layer-tls-client.git
+defines:
+  certificates-directory:
+    description: The path to store the certificates.
+    type: string
+    default: ""

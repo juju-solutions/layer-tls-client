@@ -1,0 +1,4 @@
+
+requires:
+  certificates:
+    interface: tls-certificates
