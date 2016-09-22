@@ -1,7 +1,25 @@
-includes: ['layer:basic', 'interface:tls-certificates'] 
 repo: https://github.com/juju-solutions/layer-tls-client.git
+includes: 
+  - 'layer:basic'
+  - 'interface:tls-certificates'
 defines:
-  certificates-directory:
-    description: The path to store the certificates.
+  ca_certificate_path:
     type: string
-    default: ""
+    default: ''
+    description: The absolute path to save the Certificate Authority (CA) file. 
+  server_certificate_path:
+    type: string
+    default: ''
+    description: The absolute path to save the server certificate file.
+  server_key_path:
+    type: string
+    default: ''
+    description: The absolute path to save the server key file.
+  client_certificate_path:
+    type: string
+    default: ''
+    description: The absolute path to save the client certificiate file.
+  client_key_path:
+    type: string
+    default: ''
+    description: The absolute path to save the client key file.
