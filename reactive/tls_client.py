@@ -3,6 +3,7 @@ import os
 from subprocess import check_call
 
 from charms import layer
+from charms.reactive import set_state
 from charms.reactive import when
 from charms.reactive.helpers import data_changed
 
@@ -23,6 +24,7 @@ def store_ca(tls):
             if ca_path:
                 log('Writing CA certificate to {0}'.format(ca_path))
                 _write_file(ca_path, certificate_authority)
+                set_state('tls_client.ca.saved')
             # Update /etc/ssl/certs and generate ca-certificates.crt
             install_ca(certificate_authority)
 
@@ -39,11 +41,13 @@ def store_server(tls):
             if cert_path:
                 log('Writing server certificate to {0}'.format(cert_path))
                 _write_file(cert_path, server_cert)
+                set_state('tls_client.server.certificate.saved')
         if data_changed('server_key', server_key):
             key_path = layer_options.get('server_key_path')
             if key_path:
                 log('Writing server key to {0}'.format(key_path))
                 _write_file(key_path, server_key)
+                set_state('tls_client.server.key.saved')
 
 
 @when('certificates.client.cert.available')
@@ -58,11 +62,13 @@ def store_client(tls):
             if cert_path:
                 log('Writing client certificate to {0}'.format(cert_path))
                 _write_file(cert_path, client_cert)
+                set_state('tls_client.client.certificate.saved')
         if data_changed('client_key', client_key):
             key_path = layer_options.get('client_key_path')
             if key_path:
                 log('Writing client key to {0}'.format(key_path))
                 _write_file(key_path, client_key)
+                set_state('tls_client.client.key.saved')
 
 
 def install_ca(certificate_authority):
@@ -77,6 +83,7 @@ def install_ca(certificate_authority):
         # Update the trusted CAs on this system (a time expensive operation).
         check_call(['update-ca-certificates'])
         log('Generated ca-certificates.crt for {0}'.format(name))
+        set_state('tls_client.ca_installed')
 
 
 def _ensure_directory(path):
