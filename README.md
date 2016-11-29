@@ -7,7 +7,23 @@ the requires part of the relation.
 
 This is a middle layer and can not be used on its own.
 
-Implementing layers must set certificates-directory
+Implementing layers must set certificates-directory in layer options
+
+### Certificate Paths
+
+Layer options are defined for storing the certificates on disk. These layer
+options must be defined in your consuming layer. As an example:
+
+```yaml
+options:
+  tls-client:
+    ca_certificate_path: /etc/ssl/myservice/ca.crt
+    server_certificate_path: /etc/ssl/myservice/server.crt
+    server_key_path: /etc/ssl/myservice/server.key
+    client_certificate_path: /etc/ssl/myservice/client.crt
+    client_certificate_key: /etc/ssl/myservice/client.key
+
+```
 
 ## To request a certificate
 
