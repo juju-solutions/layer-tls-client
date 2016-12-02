@@ -21,7 +21,7 @@ options:
     server_certificate_path: /etc/ssl/myservice/server.crt
     server_key_path: /etc/ssl/myservice/server.key
     client_certificate_path: /etc/ssl/myservice/client.crt
-    client_certificate_key: /etc/ssl/myservice/client.key
+    client_key_path: /etc/ssl/myservice/client.key
 
 ```
 
