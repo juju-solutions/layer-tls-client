@@ -19,12 +19,14 @@ def store_ca(tls):
     certificate_authority = tls.get_ca()
     if certificate_authority:
         layer_options = layer.options('tls-client')
-        if data_changed('certificate_authority', certificate_authority):
-            ca_path = layer_options.get('ca_certificate_path')
-            if ca_path:
+        ca_path = layer_options.get('ca_certificate_path')
+        changed = data_changed('certificate_authority', certificate_authority)
+        if ca_path:
+            if changed or not os.path.exists(ca_path):
                 log('Writing CA certificate to {0}'.format(ca_path))
                 _write_file(ca_path, certificate_authority)
                 set_state('tls_client.ca.saved')
+        if changed:
             # Update /etc/ssl/certs and generate ca-certificates.crt
             install_ca(certificate_authority)
 
@@ -36,15 +38,17 @@ def store_server(tls):
     server_cert, server_key = tls.get_server_cert()
     if server_cert and server_key:
         layer_options = layer.options('tls-client')
-        if data_changed('server_certificate', server_cert):
-            cert_path = layer_options.get('server_certificate_path')
-            if cert_path:
+        cert_path = layer_options.get('server_certificate_path')
+        key_path = layer_options.get('server_key_path')
+        cert_changed = data_changed('server_certificate', server_cert)
+        key_changed = data_changed('server_key', server_key)
+        if cert_path:
+            if cert_changed or not os.path.exists(cert_path):
                 log('Writing server certificate to {0}'.format(cert_path))
                 _write_file(cert_path, server_cert)
                 set_state('tls_client.server.certificate.saved')
-        if data_changed('server_key', server_key):
-            key_path = layer_options.get('server_key_path')
-            if key_path:
+        if key_path:
+            if key_changed or not os.path.exists(key_path):
                 log('Writing server key to {0}'.format(key_path))
                 _write_file(key_path, server_key)
                 set_state('tls_client.server.key.saved')
@@ -57,15 +61,17 @@ def store_client(tls):
     client_cert, client_key = tls.get_client_cert()
     if client_cert and client_key:
         layer_options = layer.options('tls-client')
-        if data_changed('client_certificate', client_cert):
-            cert_path = layer_options.get('client_certificate_path')
-            if cert_path:
+        cert_path = layer_options.get('client_certificate_path')
+        key_path = layer_options.get('client_key_path')
+        cert_changed = data_changed('client_certificate', client_cert)
+        key_changed = data_changed('client_key', client_key)
+        if cert_path:
+            if cert_changed or not os.path.exists(cert_path):
                 log('Writing client certificate to {0}'.format(cert_path))
                 _write_file(cert_path, client_cert)
                 set_state('tls_client.client.certificate.saved')
-        if data_changed('client_key', client_key):
-            key_path = layer_options.get('client_key_path')
-            if key_path:
+        if key_path:
+            if key_changed or not os.path.exists(key_path):
                 log('Writing client key to {0}'.format(key_path))
                 _write_file(key_path, client_key)
                 set_state('tls_client.client.key.saved')
