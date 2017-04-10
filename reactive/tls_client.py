@@ -93,7 +93,7 @@ def install_ca(certificate_authority):
         set_state('tls_client.ca_installed')
 
 
-hook('upgrade-charm')
+@hook('upgrade-charm')
 def remove_states():
     remove_state('tls_client.ca.saved')
     remove_state('tls_client.server.certificate.saved')
