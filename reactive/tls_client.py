@@ -3,7 +3,8 @@ import os
 from subprocess import check_call
 
 from charms import layer
-from charms.reactive import set_state
+from charms.reactive import hook
+from charms.reactive import set_state, remove_state
 from charms.reactive import when
 from charms.reactive.helpers import data_changed
 
@@ -25,7 +26,7 @@ def store_ca(tls):
             if changed or not os.path.exists(ca_path):
                 log('Writing CA certificate to {0}'.format(ca_path))
                 _write_file(ca_path, certificate_authority)
-                set_state('tls_client.ca.saved')
+            set_state('tls_client.ca.saved')
         if changed:
             # Update /etc/ssl/certs and generate ca-certificates.crt
             install_ca(certificate_authority)
@@ -46,12 +47,12 @@ def store_server(tls):
             if cert_changed or not os.path.exists(cert_path):
                 log('Writing server certificate to {0}'.format(cert_path))
                 _write_file(cert_path, server_cert)
-                set_state('tls_client.server.certificate.saved')
+            set_state('tls_client.server.certificate.saved')
         if key_path:
             if key_changed or not os.path.exists(key_path):
                 log('Writing server key to {0}'.format(key_path))
                 _write_file(key_path, server_key)
-                set_state('tls_client.server.key.saved')
+            set_state('tls_client.server.key.saved')
 
 
 @when('certificates.client.cert.available')
@@ -69,12 +70,12 @@ def store_client(tls):
             if cert_changed or not os.path.exists(cert_path):
                 log('Writing client certificate to {0}'.format(cert_path))
                 _write_file(cert_path, client_cert)
-                set_state('tls_client.client.certificate.saved')
+            set_state('tls_client.client.certificate.saved')
         if key_path:
             if key_changed or not os.path.exists(key_path):
                 log('Writing client key to {0}'.format(key_path))
                 _write_file(key_path, client_key)
-                set_state('tls_client.client.key.saved')
+            set_state('tls_client.client.key.saved')
 
 
 def install_ca(certificate_authority):
@@ -90,6 +91,15 @@ def install_ca(certificate_authority):
         check_call(['update-ca-certificates'])
         log('Generated ca-certificates.crt for {0}'.format(name))
         set_state('tls_client.ca_installed')
+
+
+@hook('upgrade-charm')
+def remove_states():
+    remove_state('tls_client.ca.saved')
+    remove_state('tls_client.server.certificate.saved')
+    remove_state('tls_client.server.key.saved')
+    remove_state('tls_client.client.certificate.saved')
+    remove_state('tls_client.client.key.saved')
 
 
 def _ensure_directory(path):
