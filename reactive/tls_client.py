@@ -26,6 +26,7 @@ def store_ca(tls):
             if changed or not os.path.exists(ca_path):
                 log('Writing CA certificate to {0}'.format(ca_path))
                 _write_file(ca_path, certificate_authority)
+                set_state('tls_client.ca.written')
             set_state('tls_client.ca.saved')
         if changed:
             # Update /etc/ssl/certs and generate ca-certificates.crt
@@ -47,6 +48,7 @@ def store_server(tls):
             if cert_changed or not os.path.exists(cert_path):
                 log('Writing server certificate to {0}'.format(cert_path))
                 _write_file(cert_path, server_cert)
+                set_state('tls_client.server.certificate.written')
             set_state('tls_client.server.certificate.saved')
         if key_path:
             if key_changed or not os.path.exists(key_path):
@@ -70,6 +72,7 @@ def store_client(tls):
             if cert_changed or not os.path.exists(cert_path):
                 log('Writing client certificate to {0}'.format(cert_path))
                 _write_file(cert_path, client_cert)
+                set_state('tls_client.client.certificate.written')
             set_state('tls_client.client.certificate.saved')
         if key_path:
             if key_changed or not os.path.exists(key_path):
