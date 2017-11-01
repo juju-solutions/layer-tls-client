@@ -14,6 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from charmhelpers.core.hookenv import log
+
 from charms.reactive import remove_state
 
 # Reset the certificate written flag so notification will work on the next write
