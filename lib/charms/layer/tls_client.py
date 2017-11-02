@@ -18,10 +18,12 @@ from charmhelpers.core.hookenv import log
 
 from charms.reactive import remove_state
 
-# Reset the certificate written flag so notification will work on the next write
-# cert_type must be 'server', 'client', or 'ca' to indicate type of certificate
+
+# Reset the certificate written flag so notification will work on the next
+# write cert_type must be 'server', 'client', or 'ca' to indicate type of
+# certificate
 def reset_certificate_write_flag(cert_type):
-    if not cert_type == 'server' and not cert_type == 'client' and not cert_type == 'ca':
+    if cert_type not in ['server', 'client', 'ca']:
         log('Unknown certificate type!')
     else:
         remove_state('tls_client.{0}.certificate.written'.format(cert_type))
