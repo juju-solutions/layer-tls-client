@@ -118,4 +118,4 @@ def _write_file(path, content):
     _ensure_directory(path)
     with open(path, 'w') as stream:
         stream.write(content)
-    os.chmod(path, 0o770)
+    os.chmod(path, 0o440)
