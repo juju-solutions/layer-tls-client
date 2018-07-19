@@ -1,6 +1,7 @@
 repo: https://github.com/juju-solutions/layer-tls-client.git
 includes: 
   - 'layer:basic'
+  - 'layer:debug'
   - 'interface:tls-certificates'
 defines:
   ca_certificate_path:
