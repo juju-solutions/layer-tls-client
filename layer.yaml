@@ -1,5 +1,5 @@
 repo: https://github.com/juju-solutions/layer-tls-client.git
-includes: 
+includes:
   - 'layer:basic'
   - 'layer:debug'
   - 'interface:tls-certificates'
@@ -7,20 +7,32 @@ defines:
   ca_certificate_path:
     type: string
     default: ''
-    description: The absolute path to save the Certificate Authority (CA) file. 
+    description: The absolute path to save the Certificate Authority (CA) file.
   server_certificate_path:
     type: string
     default: ''
-    description: The absolute path to save the server certificate file.
+    description: |
+      The absolute path to save the server certificate file.
+      This is deprecated in favor of calling `layer.tls_client.request_server_cert`
+      and passing the paths in to that.
   server_key_path:
     type: string
     default: ''
-    description: The absolute path to save the server key file.
+    description: |
+      The absolute path to save the server key file.
+      This is deprecated in favor of calling `layer.tls_client.request_server_cert`
+      and passing the paths in to that.
   client_certificate_path:
     type: string
     default: ''
-    description: The absolute path to save the client certificiate file.
+    description: |
+      The absolute path to save the client certificiate file.
+      This is deprecated in favor of calling `layer.tls_client.request_client_cert`
+      and passing the paths in to that.
   client_key_path:
     type: string
     default: ''
-    description: The absolute path to save the client key file.
+    description: |
+      The absolute path to save the client key file.
+      This is deprecated in favor of calling `layer.tls_client.request_client_cert`
+      and passing the paths in to that.

@@ -1,14 +1,17 @@
 import os
 
+from pathlib import Path
 from subprocess import check_call
 
 from charms import layer
 from charms.reactive import hook
 from charms.reactive import set_state, remove_state
 from charms.reactive import when
+from charms.reactive import set_flag, clear_flag
+from charms.reactive import endpoint_from_flag
 from charms.reactive.helpers import data_changed
 
-from charmhelpers.core import hookenv
+from charmhelpers.core import hookenv, unitdata
 from charmhelpers.core.hookenv import log
 
 
@@ -79,6 +82,41 @@ def store_client(tls):
                 log('Writing client key to {0}'.format(key_path))
                 _write_file(key_path, client_key)
             set_state('tls_client.client.key.saved')
+
+
+@when('certificates.certs.changed')
+def update_certs():
+    tls = endpoint_from_flag('certificates.certs.changed')
+    certs_paths = unitdata.kv().get('layer.tls-client.cert-paths', {})
+    all_ready = True
+    any_changed = False
+    for cert_type in ('server', 'client'):
+        for common_name, paths in certs_paths.get(cert_type, {}).items():
+            cert = tls.server_certs_map.get(common_name)
+            if not cert:
+                all_ready = False
+                continue
+            if not data_changed('layer.tls-client.'
+                                '{}.{}'.format(cert_type, common_name), cert):
+                continue
+            if paths['crt']:
+                Path(paths['crt']).write_text(cert.cert)
+            if paths['key']:
+                Path(paths['key']).write_text(cert.key)
+            any_changed = True
+            # clear flags first to ensure they are re-triggered if left set
+            clear_flag('tls_client.{}.certs.changed'.format(cert_type))
+            clear_flag('tls_client.{}.cert.{}.changed'.format(cert_type,
+                                                              common_name))
+            set_flag('tls_client.{}.certs.changed'.format(cert_type))
+            set_flag('tls_client.{}.cert.{}.changed'.format(cert_type,
+                                                            common_name))
+    if all_ready:
+        set_flag('tls_client.certs.saved')
+    if any_changed:
+        clear_flag('tls_client.certs.changed')
+        set_flag('tls_client.certs.changed')
+    clear_flag('certificates.certs.changed')
 
 
 def install_ca(certificate_authority):
