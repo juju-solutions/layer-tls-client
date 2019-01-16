@@ -7,30 +7,43 @@ the requires part of the relation.
 
 This is a middle layer and can not be used on its own.
 
-Implementing layers must set certificates-directory in layer options
-
-### Certificate Paths
-
-Layer options are defined for storing the certificates on disk. These layer
-options must be defined in your consuming layer. As an example:
-
-```yaml
-options:
-  tls-client:
-    ca_certificate_path: /etc/ssl/myservice/ca.crt
-    server_certificate_path: /etc/ssl/myservice/server.crt
-    server_key_path: /etc/ssl/myservice/server.key
-    client_certificate_path: /etc/ssl/myservice/client.crt
-    client_key_path: /etc/ssl/myservice/client.key
-
-```
-
 ## To request a certificate
 
-If the layer needs a server certificate it must request one with the relation
-code.
+If the layer needs a server or client certificate it must request one by
+calling either `charms.layer.tls_client.request_server_cert` or
+`charms.layer.tls_client.request_client_cert`, both of which take the following args:
 
-```python 
+  * `common_name` Common name (CN), also known as distinguished name (DN),
+    for the certificate. This is required. Multiple calls with the same CN
+    will be treated as the same certificate (allowing for updates to the
+    `sans`).
+  * `sans` Optional list of Subject Alternative Names for the certificate.
+  * `cert_path` Optional path to write cert data for the ceritifcate.
+  * `key_path` Optional path to write key data for the certificate.
+
+The charm should then watch for one of the following flags to be set:
+
+  * `tls_client.certs.saved` When all requested certificates have been
+    written to disk at least once. Note that this flag is not updated if the
+    certificates have changed, unlike the following flags.
+  * `tls_client.certs.changed` When any cert data has changed (and been written
+    to disk).
+  * `tls_client.server.certs.changed` When any server cert data has changed
+    (and been written to disk).
+  * `tls_client.server.cert.{common_name}.changed` When a specific server cert
+    data has changed (and been written to disk).
+  * `tls_client.client.certs.changed` When any client cert data has changed
+    (and been written to disk).
+  * `tls_client.client.cert.{common_name}.changed` When a specific client cert
+    data has changed (and been written to disk).
+
+The changed flags should be removed by the charm layer once handled.
+
+For example:
+```python
+from charms import layer
+
+
 @when('certificates.available')
 def send_data(tls):
     '''Send the data that is required to create a server certificate for
@@ -42,22 +55,31 @@ def send_data(tls):
     sans.append(hookenv.unit_public_ip())
     sans.append(hookenv.unit_private_ip())
     sans.append(socket.gethostname())
-    # Create a path safe name by removing path characters from the unit name.
-    certificate_name = hookenv.local_unit().replace('/', '_')
-    tls.request_server_cert(common_name, sans, certificate_name)
+    layer.tls_client.request_server_cert(common_name, sans,
+                                         crt_path='/etc/certs/server.crt',
+                                         key_path='/etc/certs/server.key')
 ```
 
-## Known Limitations and Issues
+### Layer Options
 
-This is a middle layer that needs to be built into another charm. The
-layer must define the certificate_directory layer option before this layer
-will place the certificates or keys.
+The layer supports one option, for specifying a location to write the CA certificate
+out to (in addition to installing it at the system level): `ca_certificate_path`
+
+```yaml
+options:
+  tls-client:
+    ca_certificate_path: /etc/ssl/myservice/ca.crt
+```
+
+Once the CA certificate has been installed and written, the flag `tls_client.ca.saved`
+will be set.
+
+Other layer options for using a single server certificate and single, global
+client certificate are now deprecated.
 
 # Contact Information
 
-  - **Maintainer**: Matthew Bruzek &lt;matthew.bruzek@canonical.com&gt;
-
-## Links
-
-  - The [easyrsa charm](https://github.com/juju-solutions/layer-easyrsa)
-  
+This layer is maintained by the Kubernetes team at Canonical. Issues can be
+filed on the [GitHub repo](https://github.com/juju-solutions/layer-tls-client),
+and questions can be asked on [Discourse](https://discourse.jujucharms.com/) or
+on IRC in #cdk8s or #juju on Freenode.
