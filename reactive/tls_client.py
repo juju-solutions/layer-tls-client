@@ -90,9 +90,13 @@ def update_certs():
     certs_paths = unitdata.kv().get('layer.tls-client.cert-paths', {})
     all_ready = True
     any_changed = False
+    maps = {
+        'server': tls.server_certs_map,
+        'client': tls.client_certs_map,
+    }
     for cert_type in ('server', 'client'):
         for common_name, paths in certs_paths.get(cert_type, {}).items():
-            cert = tls.server_certs_map.get(common_name)
+            cert = maps[cert_type].get(common_name)
             if not cert:
                 all_ready = False
                 continue
