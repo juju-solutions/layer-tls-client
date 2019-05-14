@@ -28,6 +28,11 @@ def store_ca(tls):
         if ca_path:
             if changed or not os.path.exists(ca_path):
                 log('Writing CA certificate to {0}'.format(ca_path))
+                # ensure we have a newline at the end of the certificate.
+                # some things will blow up without one.
+                # See https://bugs.launchpad.net/charm-kubernetes-master/+bug/1828034
+                if not certificate_authority.endswith('\n'):
+                    certificate_authority += '\n'
                 _write_file(ca_path, certificate_authority)
                 set_state('tls_client.ca.written')
             set_state('tls_client.ca.saved')
