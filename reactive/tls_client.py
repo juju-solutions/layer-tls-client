@@ -99,6 +99,22 @@ def update_certs():
         'server': tls.server_certs_map,
         'client': tls.client_certs_map,
     }
+
+    if maps.get('client') == {}:
+        log(
+            'No client certs found using maps. Checking for global \
+            client certificates.',
+            'WARNING'
+        )
+        # Check for global certs,
+        # Backwards compatibility https://bugs.launchpad.net/charm-kubernetes-master/+bug/1825819
+        cert_pair = tls.get_client_cert()
+        if cert_pair is not None:
+            for client_name in certs_paths.get('client', {}).keys():
+                maps.get('client').update({
+                    client_name: cert_pair
+                })
+
     for cert_type in ('server', 'client'):
         for common_name, paths in certs_paths.get(cert_type, {}).items():
             cert = maps[cert_type].get(common_name)
@@ -108,10 +124,16 @@ def update_certs():
             if not data_changed('layer.tls-client.'
                                 '{}.{}'.format(cert_type, common_name), cert):
                 continue
-            if paths['crt']:
-                Path(paths['crt']).write_text(cert.cert)
-            if paths['key']:
-                Path(paths['key']).write_text(cert.key)
+
+            if type(cert) is not tuple:
+                if paths['crt']:
+                    Path(paths['crt']).write_text(cert.cert)
+                if paths['key']:
+                    Path(paths['key']).write_text(cert.key)
+            else:
+                Path(paths['crt']).write_text(cert[0])
+                Path(paths['key']).write_text(cert[1])
+
             any_changed = True
             # clear flags first to ensure they are re-triggered if left set
             clear_flag('tls_client.{}.certs.changed'.format(cert_type))
