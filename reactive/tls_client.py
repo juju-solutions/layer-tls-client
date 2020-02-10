@@ -46,6 +46,9 @@ def store_server(tls):
     '''Read the server certificate and server key from the relation object
     and save them to the certificate directory..'''
     server_cert, server_key = tls.get_server_cert()
+    chain = tls.get_chain()
+    if chain:
+        server_cert = server_cert + '\n' + chain
     if server_cert and server_key:
         layer_options = layer.options('tls-client')
         cert_path = layer_options.get('server_certificate_path')
@@ -70,6 +73,9 @@ def store_client(tls):
     '''Read the client certificate and client key from the relation object
     and copy them to the certificate directory.'''
     client_cert, client_key = tls.get_client_cert()
+    chain = tls.get_chain()
+    if chain:
+        client_cert = client_cert + '\n' + chain
     if client_cert and client_key:
         layer_options = layer.options('tls-client')
         cert_path = layer_options.get('client_certificate_path')
@@ -115,24 +121,34 @@ def update_certs():
                     client_name: cert_pair
                 })
 
+    chain = tls.get_chain()
     for cert_type in ('server', 'client'):
         for common_name, paths in certs_paths.get(cert_type, {}).items():
-            cert = maps[cert_type].get(common_name)
-            if not cert:
+            cert_pair = maps[cert_type].get(common_name)
+            if not cert_pair:
                 all_ready = False
                 continue
             if not data_changed('layer.tls-client.'
-                                '{}.{}'.format(cert_type, common_name), cert):
+                                '{}.{}'.format(cert_type, common_name), cert_pair):
                 continue
 
-            if type(cert) is not tuple:
+            cert = None
+            key = None
+            if type(cert_pair) is not tuple:
                 if paths['crt']:
-                    Path(paths['crt']).write_text(cert.cert)
+                    cert = cert_pair.cert
                 if paths['key']:
-                    Path(paths['key']).write_text(cert.key)
+                    key = cert_pair.key
             else:
-                Path(paths['crt']).write_text(cert[0])
-                Path(paths['key']).write_text(cert[1])
+                cert, key = cert_pair
+
+            if cert:
+                if chain:
+                    cert = cert + '\n' + chain
+                Path(paths['crt']).write_text(cert)
+
+            if key:
+                Path(paths['key']).write_text(key)
 
             any_changed = True
             # clear flags first to ensure they are re-triggered if left set
