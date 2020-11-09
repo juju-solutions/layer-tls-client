@@ -145,9 +145,11 @@ def update_certs():
             if cert:
                 if chain:
                     cert = cert + '\n' + chain
+                _ensure_directory(paths['crt'])
                 Path(paths['crt']).write_text(cert)
 
             if key:
+                _ensure_directory(paths['key'])
                 Path(paths['key']).write_text(key)
 
             any_changed = True
