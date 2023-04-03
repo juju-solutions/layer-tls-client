@@ -197,7 +197,7 @@ def _ensure_directory(path):
     directory = os.path.dirname(path)
     if not os.path.isdir(directory):
         os.makedirs(directory)
-    os.chmod(directory, 0o770)
+        os.chmod(directory, 0o770)
 
 
 def _write_file(path, content):
