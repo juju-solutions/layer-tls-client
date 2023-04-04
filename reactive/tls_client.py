@@ -145,11 +145,11 @@ def update_certs():
             if cert:
                 if chain:
                     cert = cert + '\n' + chain
-                _ensure_directory(paths['crt'])
+                _ensure_directory(paths['crt'], 0o755)
                 Path(paths['crt']).write_text(cert)
 
             if key:
-                _ensure_directory(paths['key'])
+                _ensure_directory(paths['key'], 0o710)
                 Path(paths['key']).write_text(key)
 
             any_changed = True
@@ -192,12 +192,12 @@ def remove_states():
     remove_state('tls_client.client.key.saved')
 
 
-def _ensure_directory(path):
+def _ensure_directory(path, mode=0o770):
     '''Ensure the parent directory exists creating directories if necessary.'''
     directory = os.path.dirname(path)
     if not os.path.isdir(directory):
         os.makedirs(directory)
-        os.chmod(directory, 0o770)
+        os.chmod(directory, mode)
 
 
 def _write_file(path, content):
